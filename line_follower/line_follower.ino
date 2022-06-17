@@ -1,285 +1,218 @@
 /// Right and left defined looking from the top with the robot front up
 
-///RGB
-//Left RGB
-#define RGB_L_S0 51
-#define RGB_L_S1 50
-#define RGB_L_S2 52
-#define RGB_L_S3 53
-#define RGB_L_OUT 38
+//LED
 
-//Right RGB
-#define RGB_R_S0 42
-#define RGB_R_S1 43
-#define RGB_R_S2 44
-#define RGB_R_S3 45
-#define RGB_R_OUT 39
-
-//Mid RGB
-#define RGB_M_S0 46
-#define RGB_M_S1 47
-#define RGB_M_S2 48
-#define RGB_M_S3 49
-#define RGB_M_OUT 37
-
-
-//Motors
-//Left motor
-#define MOTOR_L_1 36
-#define MOTOR_L_2 35
-#define MOTOR_L_SPEED 9
-
-//Right motor
-#define MOTOR_R_1 34
-#define MOTOR_R_2 33
-#define MOTOR_R_SPEED 10
-
+//Ultrassonic sensor
 #define US_ECHO 40
 #define US_TRIG 41
 
+//Speed
+#define MAX_SPEED 200
+#define MIN_SPEED 110
+#define BASE_SPEED 115
+
+//PID
+#define KP 15
+#define KI 0.2
+#define KD 0
+#define MAX_I 100
+
+
+struct rgb_sensor {
+  int S0, S1, S2, S3, OUT;
+};
+
+struct rgb_sensor_values {
+  int red, green, blue, ref;
+};
+
+struct motor {
+  int A, B, SPEED;
+};
+
+///Constants
+const struct rgb_sensor RGB[] = {
+  //Left RGB
+  {
+    .S0 = 51,
+    .S1 = 50,
+    .S2 = 52,
+    .S3 = 53,
+    .OUT = 38,
+  },
+  //Right RGB
+  {
+    .S0 = 42,
+    .S1 = 43,
+    .S2 = 44,
+    .S3 = 45,
+    .OUT = 39,
+  },
+  //Mid RGB
+  {
+    .S0 = 46,
+    .S1 = 47,
+    .S2 = 48,
+    .S3 = 49,
+    .OUT = 37,
+  },
+};
+
+const struct motor MOTORS[] = {
+  {
+    .A = 36,
+    .B = 35,
+    .SPEED = 9,
+  },
+  {
+    .A = 34,
+    .B = 33,
+    .SPEED = 10,
+  },
+};
+
 /// Variables
-//Left RGB
-int l_red;
-int l_green;
-int l_blue;
-int l_ref;
+struct rgb_sensor_values rgb_values[3];
 
-//Right RGB
-int r_red;
-int r_green;
-int r_blue;
-int r_ref;
+int motor_speed[2];
 
-//Mid RGB
-int m_red;
-int m_green;
-int m_blue;
-int m_ref;
-
-//Left motor
-int l_speed;
-
-//Right motor
-int r_speed;
-
-//Error function
+//PID
 int error;
+int lastError;
+int P;
+int I;
+int D;
 
-void color_left();
-void color_right();
-void color_mid();
+void get_colors();
 void turn(int value);
 
 void setup() {
   // put your setup code here, to run once:
   //Motors
-  pinMode(MOTOR_L_1, OUTPUT);
-  pinMode(MOTOR_L_2, OUTPUT);
-  pinMode(MOTOR_L_SPEED, OUTPUT);
-  pinMode(MOTOR_R_1, OUTPUT);
-  pinMode(MOTOR_R_2, OUTPUT);
-  pinMode(MOTOR_R_SPEED, OUTPUT);
-  
-  //Left RGB
-  pinMode(RGB_L_S0, OUTPUT);
-  pinMode(RGB_L_S1, OUTPUT);
-  pinMode(RGB_L_S2, OUTPUT);
-  pinMode(RGB_L_S3, OUTPUT);
-  pinMode(RGB_L_OUT, INPUT);
-  digitalWrite(RGB_L_S0, HIGH);
-  digitalWrite(RGB_L_S1, LOW);
+  pinMode(MOTORS[0].A, OUTPUT);
+  pinMode(MOTORS[0].B, OUTPUT);
+  pinMode(MOTORS[0].SPEED, OUTPUT);
+  pinMode(MOTORS[1].A, OUTPUT);
+  pinMode(MOTORS[1].B, OUTPUT);
+  pinMode(MOTORS[1].SPEED, OUTPUT);
 
-  //Right RGB
-  pinMode(RGB_R_S0, OUTPUT);
-  pinMode(RGB_R_S1, OUTPUT);
-  pinMode(RGB_R_S2, OUTPUT);
-  pinMode(RGB_R_S3, OUTPUT);
-  pinMode(RGB_R_OUT, INPUT);
-  digitalWrite(RGB_R_S0, HIGH);
-  digitalWrite(RGB_R_S1, LOW);
 
-  //Mid RGB
-  pinMode(RGB_M_S0, OUTPUT);
-  pinMode(RGB_M_S1, OUTPUT);
-  pinMode(RGB_M_S2, OUTPUT);
-  pinMode(RGB_M_S3, OUTPUT);
-  pinMode(RGB_M_OUT, INPUT);
-  digitalWrite(RGB_M_S0, HIGH);
-  digitalWrite(RGB_M_S1, LOW);
+  //RGB
+  for (int i = 0; i < 3; i++) {
+    pinMode(RGB[i].S0, OUTPUT);
+    pinMode(RGB[i].S1, OUTPUT);
+    pinMode(RGB[i].S2, OUTPUT);
+    pinMode(RGB[i].S3, OUTPUT);
+    pinMode(RGB[i].OUT, INPUT);
+    digitalWrite(RGB[i].S0, HIGH);
+    digitalWrite(RGB[i].S1, LOW);
+  }
 
   Serial.begin(9600);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  color_left();
-  color_right();
-  color_mid();
+  get_colors();
+
   Serial.print("Red: ");
-  Serial.print(l_red);
+  Serial.print(rgb_values[0].red);
   Serial.print(" Green: ");
-  Serial.print(l_green);
+  Serial.print(rgb_values[0].green);
   Serial.print(" Blue: ");
-  Serial.print(l_blue);
+  Serial.print(rgb_values[0].blue);
   Serial.print(" Ref: ");
-  Serial.print(l_ref);
-  Serial.print(" l_speed: ");
-  Serial.print(l_speed);
-  Serial.print(" r_speed: ");
-  Serial.println(r_speed);
+  Serial.print(rgb_values[0].ref);
+  Serial.print(" motor_speed[0]: ");
+  Serial.print(motor_speed[0]);
+  Serial.print(" motor_speed[1]: ");
+  Serial.println(motor_speed[1]);
 
+  error = rgb_values[1].ref - rgb_values[0].ref;
 
-  if(l_ref > r_ref) {
-    error = r_ref - l_ref - m_ref;
-  } else if(r_ref > l_ref) {
-    error = r_ref - l_ref + m_ref;
-  } else error = 0;
+  P = KP * error;
+  I += KI * error;
+  D = KD * (error - lastError);
 
-  turn(error);
+  I = min(I, MAX_I);
+  I = max(I, -MAX_I);
 
-  /*digitalWrite(MOTOR_R_1, HIGH);
-  digitalWrite(MOTOR_R_2, LOW);
-  digitalWrite(MOTOR_L_1, HIGH);
-  digitalWrite(MOTOR_L_2, LOW);
-  digitalWrite(MOTOR_R_SPEED, HIGH);
-  digitalWrite(MOTOR_L_SPEED, HIGH);*/
+  turn(P + I + D);
+  /* turn(P); */
+
+  lastError = error;
 }
 
-void color_left() {
-  digitalWrite(RGB_L_S2, LOW);
-  digitalWrite(RGB_L_S3, LOW);
+void get_colors() {
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(RGB[i].S2, LOW);
+    digitalWrite(RGB[i].S3, LOW);
 
-  if(digitalRead(RGB_L_OUT) == HIGH) {
-    l_red = pulseIn(RGB_L_OUT, LOW);
-  } else {
-    l_red = pulseIn(RGB_L_OUT, HIGH);
+    if (digitalRead(RGB[i].OUT) == HIGH) {
+      rgb_values[i].red = pulseIn(RGB[i].OUT, LOW);
+    } else
+      rgb_values[i].red = pulseIn(RGB[i].OUT, HIGH);
   }
 
-  digitalWrite(RGB_L_S3, HIGH);
 
-  if(digitalRead(RGB_L_OUT) == HIGH) {
-    l_blue = pulseIn(RGB_L_OUT, LOW);
-  } else {
-    l_blue = pulseIn(RGB_L_OUT, HIGH);
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(RGB[i].S3, HIGH);
+
+    if (digitalRead(RGB[i].OUT) == HIGH) {
+      rgb_values[i].blue = pulseIn(RGB[i].OUT, LOW);
+    } else {
+      rgb_values[i].blue = pulseIn(RGB[i].OUT, HIGH);
+    }
   }
 
-  digitalWrite(RGB_L_S2, HIGH);
-  digitalWrite(RGB_L_S3, LOW);
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(RGB[i].S2, HIGH);
+    digitalWrite(RGB[i].S3, LOW);
 
-  if(digitalRead(RGB_L_OUT) == HIGH) {
-    l_ref= pulseIn(RGB_L_OUT, LOW);
-  } else {
-    l_ref= pulseIn(RGB_L_OUT, HIGH);
+    if (digitalRead(RGB[i].OUT) == HIGH) {
+      rgb_values[i].ref = pulseIn(RGB[i].OUT, LOW);
+    } else {
+      rgb_values[i].ref = pulseIn(RGB[i].OUT, HIGH);
+    }
   }
 
-  digitalWrite(RGB_L_S3, HIGH);
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(RGB[i].S3, HIGH);
 
-  if(digitalRead(RGB_L_OUT) == HIGH) {
-    l_green= pulseIn(RGB_L_OUT, LOW);
-  } else {
-    l_green= pulseIn(RGB_L_OUT, HIGH);
-  }
-}
-
-void color_right() {
-  digitalWrite(RGB_R_S2, LOW);
-  digitalWrite(RGB_R_S3, LOW);
-
-  if(digitalRead(RGB_R_OUT) == HIGH) {
-    r_red = pulseIn(RGB_R_OUT, LOW);
-  } else {
-    r_red = pulseIn(RGB_R_OUT, HIGH);
-  }
-
-  digitalWrite(RGB_R_S3, HIGH);
-
-  if(digitalRead(RGB_R_OUT) == HIGH) {
-    r_blue = pulseIn(RGB_R_OUT, LOW);
-  } else {
-    r_blue = pulseIn(RGB_R_OUT, HIGH);
-  }
-
-  digitalWrite(RGB_R_S2, HIGH);
-  digitalWrite(RGB_R_S3, LOW);
-
-  if(digitalRead(RGB_R_OUT) == HIGH) {
-    r_ref= pulseIn(RGB_R_OUT, LOW);
-  } else {
-    r_ref= pulseIn(RGB_R_OUT, HIGH);
-  }
-
-  digitalWrite(RGB_R_S3, HIGH);
-
-  if(digitalRead(RGB_R_OUT) == HIGH) {
-    r_green= pulseIn(RGB_R_OUT, LOW);
-  } else {
-    r_green= pulseIn(RGB_R_OUT, HIGH);
-  }
-}
-
-void color_mid() {
-  digitalWrite(RGB_M_S2, LOW);
-  digitalWrite(RGB_M_S3, LOW);
-
-  if(digitalRead(RGB_M_OUT) == HIGH) {
-    m_red = pulseIn(RGB_M_OUT, LOW);
-  } else {
-    m_red = pulseIn(RGB_M_OUT, HIGH);
-  }
-
-  digitalWrite(RGB_M_S3, HIGH);
-
-  if(digitalRead(RGB_M_OUT) == HIGH) {
-    m_blue = pulseIn(RGB_M_OUT, LOW);
-  } else {
-    m_blue = pulseIn(RGB_M_OUT, HIGH);
-  }
-
-  digitalWrite(RGB_M_S2, HIGH);
-  digitalWrite(RGB_M_S3, LOW);
-
-  if(digitalRead(RGB_M_OUT) == HIGH) {
-    m_ref= pulseIn(RGB_M_OUT, LOW);
-  } else {
-    m_ref= pulseIn(RGB_M_OUT, HIGH);
-  }
-
-  digitalWrite(RGB_M_S3, HIGH);
-
-  if(digitalRead(RGB_M_OUT) == HIGH) {
-    m_green= pulseIn(RGB_M_OUT, LOW);
-  } else {
-    m_green= pulseIn(RGB_M_OUT, HIGH);
+    if (digitalRead(RGB[i].OUT) == HIGH) {
+      rgb_values[i].green = pulseIn(RGB[i].OUT, LOW);
+    } else {
+      rgb_values[i].green = pulseIn(RGB[i].OUT, HIGH);
+    }
   }
 }
 
 void turn(int value) {
-   l_speed = 100 + value * 355 / 400;
-   r_speed = 100 - value * 355 / 400;
+  motor_speed[0] = BASE_SPEED + value;
+  motor_speed[1] = BASE_SPEED - value;
 
-   l_speed = min(255, l_speed);
-   r_speed = min(255, r_speed);
 
-   l_speed = max(-255, l_speed);
-   r_speed = max(-255, r_speed);
+  motor_speed[0] = max(-MAX_SPEED, motor_speed[0]);
+  motor_speed[1] = max(-MAX_SPEED, motor_speed[1]);
 
-   if(l_speed >=0) {
-    digitalWrite(MOTOR_L_1, HIGH);
-    digitalWrite(MOTOR_L_2, LOW);
-   } else {
-    digitalWrite(MOTOR_L_1, LOW);
-    digitalWrite(MOTOR_L_2, HIGH);
-   }
+  if (motor_speed[0] >= 0) {
+    digitalWrite(MOTORS[0].A, HIGH);
+    digitalWrite(MOTORS[0].B, LOW);
+    motor_speed[0] = motor_speed[0] * (MAX_SPEED - MIN_SPEED) / MAX_SPEED + MIN_SPEED;
+  } else {
+    digitalWrite(MOTORS[0].A, LOW);
+    digitalWrite(MOTORS[0].B, HIGH);
+    motor_speed[0] = motor_speed[0] * (MAX_SPEED - MIN_SPEED) / MAX_SPEED - MIN_SPEED;
+  }
 
-   analogWrite(MOTOR_L_SPEED, abs(l_speed));
+  analogWrite(MOTORS[0].SPEED, abs(motor_speed[0]));
 
-  if(r_speed >=0) {
-    digitalWrite(MOTOR_R_1, HIGH);
-    digitalWrite(MOTOR_R_2, LOW);
-   } else {
-    digitalWrite(MOTOR_R_1, LOW);
-    digitalWrite(MOTOR_R_2, HIGH);
-   }
+  if (motor_speed[1] >= 0) {
+    digitalWrite(MOTORS[1].A, HIGH);
 
-   analogWrite(MOTOR_R_SPEED, abs(r_speed));
+  } else {
+    digitalWrite(MOTORS[1].A, LOW);
+  }
+
+  analogWrite(MOTORS[1].SPEED, abs(motor_speed[1]));
 }
