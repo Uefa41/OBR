@@ -85,6 +85,7 @@ const float MAX_I = 100;
 const float SR = 0.7;
 
 const long GYRO_90 = 10000;
+const long GYRO_180 = 20000;
 
 const int MARGIN_OF_ERROR = 20;
 
@@ -208,121 +209,7 @@ void loop() {
     get_rgb(i);
   }
 
-  if (rgb_in_range(green_range, 0)) {
-    motor_stop();
-    delay(1000);
-    motors_turn(0, BASE_SPEED, false);
-    delay(10);
-
-    get_rgb(1);
-
-    if (rgb_in_range(green_range, 1)) {
-      motors_turn(0, BASE_SPEED, false);
-      do {
-        for (int i = 0; i < 2; i++) {
-          get_rgb(i);
-        }
-      } while (rgb_in_range(green_range, 0) && rgb_in_range(green_range, 1));
-      /* delay(150); */
-
-      if (rgb_in_range(black_range, 0) && rgb_in_range(black_range, 1)) {
-        rot = 0;
-
-        motors_spin(BASE_SPEED);
-
-        do {
-          lastTime = time;
-          time = millis();
-
-          get_gyro();
-
-          rot += gyro.GyZ / 1000 * (int) (time - lastTime);
-        } while (abs(rot) < GYRO_90 * 2);
-
-        rot = 0;
-      }
-    } else {
-      motors_turn(0, BASE_SPEED, false);
-      do {
-        get_rgb(0);
-      } while (rgb_in_range(green_range, 0));
-      /* delay(150); */
-
-      if (rgb_in_range(black_range, 0)) {
-        rot = 0;
-
-        motors_spin(-BASE_SPEED);
-
-        do {
-          lastTime = time;
-          time = millis();
-
-          get_gyro();
-
-          rot += gyro.GyZ / 1000 * (int) (time - lastTime);
-        } while (abs(rot) < GYRO_90);
-
-        rot = 0;
-      }
-    }
-  } else if (rgb_in_range(green_range, 1)) {
-    motor_stop();
-    delay(1000);
-    motors_turn(0, BASE_SPEED, false);
-    delay(10);
-
-    get_rgb(0);
-
-    if (rgb_in_range(green_range, 0)) {
-      motors_turn(0, BASE_SPEED, false);
-      do {
-        for (int i = 0; i < 2; i++) {
-          get_rgb(i);
-        }
-      } while (rgb_in_range(green_range, 0) && rgb_in_range(green_range, 1));
-      /* delay(150); */
-
-      if (rgb_in_range(black_range, 0) && rgb_in_range(black_range, 1)) {
-        rot = 0;
-
-        motors_spin(BASE_SPEED);
-
-        do {
-          lastTime = time;
-          time = millis();
-
-          get_gyro();
-
-          rot += gyro.GyZ / 1000 * (int) (time - lastTime);
-        } while (abs(rot) < GYRO_90 * 2);
-
-        rot = 0;
-      }
-    } else {
-      motors_turn(0, BASE_SPEED, false);
-      do {
-        get_rgb(1);
-      } while (rgb_in_range(green_range, 0));
-      /* delay(150); */
-
-      if (rgb_in_range(black_range, 1)) {
-        rot = 0;
-
-        motors_spin(BASE_SPEED);
-
-        do {
-          lastTime = time;
-          time = millis();
-
-          get_gyro();
-
-          rot += gyro.GyZ / 1000 * (int) (time - lastTime);
-        } while (abs(rot) < GYRO_90);
-
-        rot = 0;
-      }
-    }
-  }
+  turn_green();
 
   pid_turn(BASE_SPEED, false);
 
