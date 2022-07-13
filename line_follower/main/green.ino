@@ -1,12 +1,15 @@
 void turn_green() {
   int green_id = check_green(); 
   if (green_id && check_black(green_id - 1)) {
+    motors_turn(0, BASE_SPEED, false);
+    delay(200);
+
     rot = 0;
 
     if (green_id > 1) {
-      motors_spin(BASE_SPEED);
+      motors_spin(MAX_SPEED);
     } else if ( green_id == 1) {
-      motors_spin(-BASE_SPEED);
+      motors_spin(-MAX_SPEED);
     }
 
     do {
@@ -68,8 +71,9 @@ bool check_black(int sensor_id) {
   time = millis();
 
   motors_turn(0, BASE_SPEED, false);
+  delay(10);
 
-  while (millis() - time < 500) {
+  while (millis() - time < 100) {
     if (sensor_id == 2) {
       get_rgb(0);
       get_rgb(1);

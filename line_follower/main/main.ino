@@ -78,16 +78,17 @@ const int MIN_SPEED = 100;
 const int BASE_SPEED = 120;
 
 /* const float K = 10000; */
-const float KP = 2;
+const float KP = 1;
 const float KI = 0.02;
-const float KD = 4.3;
+const float KD = 3;
 const float MAX_I = 100;
 const float SR = 0.7;
 
 const long GYRO_90 = 10000;
 const long GYRO_180 = 20000;
 
-const int MARGIN_OF_ERROR = 20;
+const int MARGIN_OF_ERROR_GREEN = 12;
+const int MARGIN_OF_ERROR_BLACK = 5;
 
 /// Variables
 gyro_values gyro;
@@ -141,12 +142,15 @@ void setup() {
 
   while (digitalRead(BUTTON) == LOW);
 
-  calibrate(black_range, MARGIN_OF_ERROR);
+  calibrate(black_range, MARGIN_OF_ERROR_BLACK);
+
+  motors_spin(MAX_SPEED);
+  delay(10);
 
   while (digitalRead(BUTTON) == HIGH);
   while (digitalRead(BUTTON) == LOW);
 
-  calibrate(green_range, MARGIN_OF_ERROR);
+  calibrate(green_range, MARGIN_OF_ERROR_GREEN);
 
   Serial.println(black_range[0].red);
   Serial.println(black_range[0].green);
@@ -210,6 +214,13 @@ void loop() {
   }
 
   turn_green();
+
+  if (digitalRead(BUTTON) == HIGH) {
+    motor_stop();
+    while (digitalRead(BUTTON) == HIGH);
+    while (digitalRead(BUTTON) == LOW);
+    while (digitalRead(BUTTON) == HIGH);
+  }
 
   pid_turn(BASE_SPEED, false);
 
