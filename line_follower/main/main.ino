@@ -87,8 +87,8 @@ const float SR = 0.7;
 const long GYRO_90 = 10000;
 const long GYRO_180 = 20000;
 
-const int MARGIN_OF_ERROR_GREEN = 12;
-const int MARGIN_OF_ERROR_BLACK = 5;
+const int MARGIN_OF_ERROR_GREEN = 11;
+const int MARGIN_OF_ERROR_BLACK = 8;
 
 /// Variables
 gyro_values gyro;
@@ -110,6 +110,10 @@ float rot;
 /// Setup
 void setup() {
     Serial.begin(9600);
+
+    // Ultrassonic
+    pinMode(US.echo, INPUT);
+    pinMode(US.trig, OUTPUT);
 
     // Gyroscope
     Wire.begin();
@@ -146,6 +150,7 @@ void setup() {
 
   motors_spin(MAX_SPEED);
   delay(10);
+  motors_stop();
 
   while (digitalRead(BUTTON) == HIGH);
   while (digitalRead(BUTTON) == LOW);
@@ -216,7 +221,7 @@ void loop() {
   turn_green();
 
   if (digitalRead(BUTTON) == HIGH) {
-    motor_stop();
+    motors_stop();
     while (digitalRead(BUTTON) == HIGH);
     while (digitalRead(BUTTON) == LOW);
     while (digitalRead(BUTTON) == HIGH);

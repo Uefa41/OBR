@@ -55,9 +55,24 @@ void motors_spin(int speed) {
     analogWrite(MOTORS[1].SPEED, abs(speed));
 }
 
-void motor_stop() {
+void motors_stop() {
   digitalWrite(MOTORS[0].A, LOW);
   digitalWrite(MOTORS[0].B, LOW);
   digitalWrite(MOTORS[1].A, LOW);
   digitalWrite(MOTORS[1].B, LOW);
+}
+
+void motors_rotate(long rotation, int speed) {
+  rot = 0;
+  
+  motors_spin(speed);
+  
+  do {
+    lastTime = time;
+    time = millis();
+
+    get_gyro();
+
+    rot += gyro.GyZ / 1000 * (int) (time - lastTime);
+  } while (abs(rot) < rotation);
 }

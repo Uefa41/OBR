@@ -4,22 +4,19 @@ void turn_green() {
     motors_turn(0, BASE_SPEED, false);
     delay(200);
 
-    rot = 0;
+    switch (green_id) {
+      case 1:
+        motors_rotate(GYRO_90, -MAX_SPEED);
+        break;
 
-    if (green_id > 1) {
-      motors_spin(MAX_SPEED);
-    } else if ( green_id == 1) {
-      motors_spin(-MAX_SPEED);
+      case 2:
+        motors_rotate(GYRO_90, MAX_SPEED);
+        break;
+
+      case 3:
+        motors_rotate(GYRO_180, MAX_SPEED);
+        break;
     }
-
-    do {
-      lastTime = time;
-      time = millis();
-
-      get_gyro();
-
-      rot += gyro.GyZ / 1000 * (int) (time - lastTime);
-    } while (abs(rot) < ((green_id == 3) ? GYRO_180 : GYRO_90));
   }
 }
 
