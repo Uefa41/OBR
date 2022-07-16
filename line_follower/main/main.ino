@@ -87,8 +87,11 @@ const float SR = 0.7;
 const long GYRO_90 = 10000;
 const long GYRO_180 = 20000;
 
+const bool DO_GREEN = true;
 const int MARGIN_OF_ERROR_GREEN = 11;
 const int MARGIN_OF_ERROR_BLACK = 8;
+
+const float OBSTACLE_DISTANCE = 5.0;
 
 /// Variables
 gyro_values gyro;
@@ -144,18 +147,20 @@ void setup() {
 
   pinMode(BUTTON, INPUT);
 
-  while (digitalRead(BUTTON) == LOW);
+  if (DO_GREEN) {
+    while (digitalRead(BUTTON) == LOW);
 
-  calibrate(black_range, MARGIN_OF_ERROR_BLACK);
+    calibrate(black_range, MARGIN_OF_ERROR_BLACK);
 
-  motors_spin(MAX_SPEED);
-  delay(10);
-  motors_stop();
+    motors_spin(MAX_SPEED);
+    delay(10);
+    motors_stop();
 
-  while (digitalRead(BUTTON) == HIGH);
-  while (digitalRead(BUTTON) == LOW);
+    while (digitalRead(BUTTON) == HIGH);
+    while (digitalRead(BUTTON) == LOW);
 
-  calibrate(green_range, MARGIN_OF_ERROR_GREEN);
+    calibrate(green_range, MARGIN_OF_ERROR_GREEN);
+  }
 
   Serial.println(black_range[0].red);
   Serial.println(black_range[0].green);
@@ -218,7 +223,18 @@ void loop() {
     get_rgb(i);
   }
 
-  turn_green();
+  if (DO_GREEN) {
+    turn_green();
+  }
+
+  if (us_distance() < OBSTACLE_DISTANCE) {
+    motors_stop();
+    delay(100);
+
+    if (us_distance() < OBSTACLE_DISTANCE) {
+      divert_obstacle(false);
+    }
+  }
 
   if (digitalRead(BUTTON) == HIGH) {
     motors_stop();
