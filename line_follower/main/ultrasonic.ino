@@ -20,11 +20,11 @@ void divert_obstacle(bool side) {
 
   motors_rotate(GYRO_90, -rotate_speed);
   motors_turn(0, MAX_SPEED, false);
-  delay(300);
+  delay(400);
 
   motors_rotate(GYRO_90, rotate_speed);
   motors_turn(0, MAX_SPEED, false);
-  delay(1100);
+  delay(1000);
 
   motors_rotate(GYRO_90, rotate_speed);
   motors_turn(0, MAX_SPEED, false);
