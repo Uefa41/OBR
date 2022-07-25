@@ -24,11 +24,16 @@ void divert_obstacle(bool side) {
 
   motors_rotate(GYRO_90, rotate_speed);
   motors_turn(0, MAX_SPEED, false);
-  delay(1000);
+  delay(1100);
 
   motors_rotate(GYRO_90, rotate_speed);
   motors_turn(0, MAX_SPEED, false);
-  delay(300);
+  
+  while (! rgb_in_range(black_range, 0) && ! rgb_in_range(black_range, 1)) {
+    get_rgb(0);
+    get_rgb(1);
+  }
 
+  delay(100);
   motors_rotate(GYRO_90, -rotate_speed);
 }
