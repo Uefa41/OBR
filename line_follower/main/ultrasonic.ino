@@ -18,22 +18,33 @@ void divert_obstacle(bool side) {
     rotate_speed = -rotate_speed;
   }
 
-  motors_rotate(GYRO_90, -rotate_speed);
+  /* motors_rotate(GYRO_90, -rotate_speed); */
+  motors_rotate_time(TIME_90, -rotate_speed);
   motors_turn(0, MAX_SPEED, false);
   delay(400);
 
-  motors_rotate(GYRO_90, rotate_speed);
+  /* motors_rotate(GYRO_90, rotate_speed); */
+  motors_rotate_time(TIME_90 + 50, rotate_speed);
   motors_turn(0, MAX_SPEED, false);
-  delay(1000);
+  delay(800);
 
-  motors_rotate(GYRO_90, rotate_speed);
-  motors_turn(0, MAX_SPEED, false);
+  /* motors_rotate(GYRO_90, rotate_speed); */
+  motors_rotate_time(TIME_90, rotate_speed);
+  motors_turn(0, BASE_SPEED, false);
   
-  while (! rgb_in_range(black_range, 0) && ! rgb_in_range(black_range, 1)) {
+  lastTime = time;
+  time = millis();
+  while ((! rgb_in_range(black_range, 0)) && (! rgb_in_range(black_range, 1)) && (millis() - time) < 600) {
     get_rgb(0);
     get_rgb(1);
   }
+  
+  if (millis() - time > 600) {
+    motors_stop();
+    delay(1000);
+  }
 
   delay(100);
-  motors_rotate(GYRO_90, -rotate_speed);
+  /* motors_rotate(GYRO_90, -rotate_speed); */
+  motors_rotate_time(TIME_90, -rotate_speed);
 }

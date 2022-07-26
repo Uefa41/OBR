@@ -62,17 +62,23 @@ void motors_stop() {
   digitalWrite(MOTORS[1].B, LOW);
 }
 
-void motors_rotate(long rotation, int speed) {
-  rot = 0;
-  
+/* void motors_rotate(long rotation, int speed) { */
+/*   rot = 0; */
+/*    */
+/*   motors_spin(speed); */
+/*    */
+/*   do { */
+/*     lastTime = time; */
+/*     time = millis(); */
+
+/*     get_gyro(); */
+
+/*     rot += gyro.GyZ / 1000 * (int) (time - lastTime); */
+/*   } while (abs(rot) < rotation); */
+/* } */
+
+void motors_rotate_time(long rotation, int speed) {
   motors_spin(speed);
-  
-  do {
-    lastTime = time;
-    time = millis();
-
-    get_gyro();
-
-    rot += gyro.GyZ / 1000 * (int) (time - lastTime);
-  } while (abs(rot) < rotation);
+  delay(rotation);
+  motors_stop();
 }
