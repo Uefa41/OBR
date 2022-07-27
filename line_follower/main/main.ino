@@ -86,7 +86,7 @@ const int MAX_SPEED = 200;
 const int MIN_SPEED = 100;
 const int BASE_SPEED = 110;
 
-const float KP = 1.2;
+const float KP = 1.3;
 const float KI = 0.01;
 const float KD = 2.5;
 const float MAX_I = 100;
@@ -94,8 +94,8 @@ const float SR = 0.6;
 
 const float GYRO_90 = 90;
 const float GYRO_180 = 180;
-const long TIME_90 = 500;
-const long TIME_180 = 1000;
+const long TIME_90 = 600;
+const long TIME_180 = 1200;
 
 const bool DO_GREEN = true;
 const int MARGIN_OF_ERROR_GREEN = 9;
