@@ -6,18 +6,18 @@ void turn_green() {
 
     switch (green_id) {
       case 1:
-        /* motors_rotate(GYRO_90, -MAX_SPEED); */
-        motors_rotate_time(TIME_90, -MAX_SPEED);
+        motors_rotate(GYRO_90, -MAX_SPEED);
+        /* motors_rotate_time(TIME_90, -MAX_SPEED); */
         break;
 
       case 2:
-        /* motors_rotate(GYRO_90, MAX_SPEED); */
-        motors_rotate_time(TIME_90, MAX_SPEED);
+        motors_rotate(GYRO_90, MAX_SPEED);
+        /* motors_rotate_time(TIME_90, MAX_SPEED); */
         break;
 
       case 3:
-        /* motors_rotate(GYRO_180, MAX_SPEED); */
-        motors_rotate_time(TIME_180, MAX_SPEED);
+        motors_rotate(GYRO_180, MAX_SPEED);
+        /* motors_rotate_time(TIME_180, MAX_SPEED); */
         break;
     }
 

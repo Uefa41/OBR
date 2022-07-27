@@ -1,5 +1,6 @@
-/* #include <Wire.h> */
+#include <Wire.h>
 #include <NewPing.h>
+#include <MPU6050_light.h>
 
 /// Structs
 typedef struct rgb_sensor {
@@ -13,10 +14,6 @@ typedef struct rgb_values {
 typedef struct motor {
   int A, B, SPEED;
 } motor;
-
-/* typedef struct gyro_values { */
-/*     int AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ; */
-/* } gyro_values; */
 
 typedef struct ultrasonic {
     unsigned short echo, trig;
@@ -68,7 +65,7 @@ const motor MOTORS[] = {
 
 // Gyroscope
 
-/* const int MPU = 0x68; */
+const int MPU = 0x68;
 
 // Button
 const int BUTTON = 32;
@@ -78,29 +75,26 @@ const int MAX_SPEED = 200;
 const int MIN_SPEED = 100;
 const int BASE_SPEED = 110;
 
-/* const float K = 10000; */
 const float KP = 1.5;
 const float KI = 0.02;
 const float KD = 3.5;
 const float MAX_I = 100;
 const float SR = 0.7;
 
-const long GYRO_90 = 10000;
-const long GYRO_180 = 20000;
-const long TIME_90 = 500;
-const long TIME_180 = 1000;
+const float GYRO_90 = 90;
+const float GYRO_180 = 180;
+/* const long TIME_90 = 500; */
+/* const long TIME_180 = 1000; */
 
-const bool DO_GREEN = true;
+const bool DO_GREEN = false;
 const int MARGIN_OF_ERROR_GREEN = 15;
 const int MARGIN_OF_ERROR_BLACK = 8;
 
 const bool DO_OBSTACLE = true;
 const float OBSTACLE_DISTANCE = 10.0;
 
-const long GRAV = 14000;
-
 /// Variables
-/* gyro_values gyro; */
+MPU6050 mpu(Wire);
 
 NewPing sonar(US.trig, US.echo, 100);
 
@@ -131,12 +125,8 @@ void setup() {
     pinMode(US.trig, OUTPUT);
 
     // Gyroscope
-    /* Wire.begin(); */
-    /* Wire.beginTransmission(MPU); */
-    /* Wire.write(0x6B); */
-
-    /* Wire.write(0); */
-    /* Wire.endTransmission(true); */
+    Wire.begin();
+    mpu.begin();
 
   // RGB
   for (int i = 0; i < 2; i++) {
@@ -159,11 +149,18 @@ void setup() {
 
   pinMode(BUTTON, INPUT);
 
-  /* motors_rotate_time(TIME_90, MAX_SPEED); */
+  while (digitalRead(BUTTON) == LOW);
+
+  mpu.calcGyroOffsets();
+
+  motors_spin(MAX_SPEED);
+  delay(30);
+  motors_stop();
+
+  while (digitalRead(BUTTON) == HIGH);
+  while (digitalRead(BUTTON) == LOW);
 
   if (DO_GREEN) {
-    while (digitalRead(BUTTON) == LOW);
-
     calibrate(black_range, MARGIN_OF_ERROR_BLACK);
 
     motors_spin(MAX_SPEED);
@@ -182,64 +179,9 @@ void setup() {
     while (digitalRead(BUTTON) == HIGH);
     while (digitalRead(BUTTON) == LOW);
   }
-
-  Serial.println(black_range[0].red);
-  Serial.println(black_range[0].green);
-  Serial.println(black_range[0].blue);
-  Serial.println(black_range[0].ref);
-
-  Serial.println(black_range[1].red);
-  Serial.println(black_range[1].green);
-  Serial.println(black_range[1].blue);
-  Serial.println(black_range[1].ref);
-  
-  Serial.println(green_range[0].red);
-  Serial.println(green_range[0].green);
-  Serial.println(green_range[0].blue);
-  Serial.println(green_range[0].ref);
-
-  Serial.println(green_range[1].red);
-  Serial.println(green_range[1].green);
-  Serial.println(green_range[1].blue);
-  Serial.println(green_range[1].ref);
-
-  /* black_range[0].red = 131; */
-  /* black_range[0].green = 128; */
-  /* black_range[0].blue = 124; */
-  /* black_range[0].ref = 37; */
-
-  /* black_range[1].red = 162; */
-  /* black_range[1].green = 136; */
-  /* black_range[1].blue = 135; */
-  /* black_range[1].ref = 48; */
-
-  /* green_range[0].red = 103; */
-  /* green_range[0].green = 75; */
-  /* green_range[0].blue = 87; */
-  /* green_range[0].ref = 24; */
-
-  /* green_range[1].red = 115; */
-  /* green_range[1].green = 83; */
-  /* green_range[1].blue = 96; */
-  /* green_range[1].ref = 31; */
 }
 
 void loop() {
-  lastTime = time;
-  time = millis();
-
-  /* get_gyro(); */
-
-  /* rot += gyro.GyZ / 1000 * (int) (time - lastTime); */
-
-  /* if (abs(rot) >= 6000) { */
-  /*   motors_turn(PID / abs(PID) * 110, BASE_SPEED, true); */
-  /*   while (millis() - time < 275); */
-  /*   motors_turn(PID / abs(PID) * 110, BASE_SPEED, false); */
-  /*   while (millis() - time < 375); */
-  /*   rot = 0; */
-  /* } */
-
   for (int i = 0; i < 2; i++) {
     get_rgb(i);
   }
@@ -266,12 +208,5 @@ void loop() {
     while (digitalRead(BUTTON) == HIGH);
   }
 
-  /* if (gyro.AcZ < GRAV) { */
-  /*   pid_turn(MAX_SPEED, false); */
-  /* } else { */
-  /*   pid_turn(BASE_SPEED, false); */
-  /* } */
   pid_turn(BASE_SPEED, false);
-
-  /* Serial.println(rot); */
 }
