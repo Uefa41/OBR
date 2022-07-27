@@ -222,7 +222,7 @@ void setup() {
 void loop() {
   /* mpu.update(); */
 
-  for (int i = 1; i >= 0; i--) {
+  for (int i = 0; i < 2; i++) {
     get_rgb(i);
   }
 
