@@ -3,7 +3,7 @@ void pid_turn(int base_speed, bool backwards) {
     get_rgb(i);
   }
 
-  error = pow(rgb_sensor_values[1].ref, 2) - pow(rgb_sensor_values[0].ref, 2);
+  error = pow(rgb_sensor_values[0].ref, 2) - pow(rgb_sensor_values[1].ref, 2);
 
   /* error *= K; */
 
@@ -16,7 +16,7 @@ void pid_turn(int base_speed, bool backwards) {
 
   lastError = error;
 
-  PID = floor(P + I + D);
+  PID = round(P + I + D);
 
-  motors_turn(PID, base_speed - SR * error, backwards);
+  motors_turn(- PID, base_speed - SR * abs(error), backwards);
 }

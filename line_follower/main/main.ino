@@ -19,6 +19,10 @@ typedef struct ultrasonic {
     unsigned short echo, trig;
 } ultrasonic;
 
+typedef struct led {
+  int R, G, B;
+} led;
+
 /// Pins
 
 // Ultrassonic sensor
@@ -70,28 +74,35 @@ const int MPU = 0x68;
 // Button
 const int BUTTON = 32;
 
+// LED
+const led LED = {
+  .R = 31,
+  .G = 28,
+  .B = 30,
+};
+
 /// Constants
 const int MAX_SPEED = 200;
 const int MIN_SPEED = 100;
 const int BASE_SPEED = 110;
 
-const float KP = 1.5;
-const float KI = 0.02;
-const float KD = 3.5;
+const float KP = 1.2;
+const float KI = 0.01;
+const float KD = 2.5;
 const float MAX_I = 100;
-const float SR = 0.7;
+const float SR = 0.6;
 
 const float GYRO_90 = 90;
 const float GYRO_180 = 180;
-/* const long TIME_90 = 500; */
-/* const long TIME_180 = 1000; */
+const long TIME_90 = 500;
+const long TIME_180 = 1000;
 
 const bool DO_GREEN = true;
-const int MARGIN_OF_ERROR_GREEN = 15;
+const int MARGIN_OF_ERROR_GREEN = 9;
 const int MARGIN_OF_ERROR_BLACK = 8;
 
 const bool DO_OBSTACLE = true;
-const float OBSTACLE_DISTANCE = 10.0;
+const float OBSTACLE_DISTANCE = 3.0;
 
 /// Variables
 MPU6050 mpu(Wire);
@@ -108,10 +119,13 @@ float error, lastError, P, I, D;
 
 int PID;
 
+unsigned long PIDTimer;
+
 unsigned long time, lastTime;
 
 float rot;
 
+unsigned long pingTimer;
 unsigned int usDistance;
 float lastUltrasonic;
 float ultrasonicValue;
@@ -126,6 +140,7 @@ void setup() {
 
     // Gyroscope
     Wire.begin();
+    Wire.setWireTimeout(3000, true);
     mpu.begin();
 
   // RGB
@@ -148,7 +163,14 @@ void setup() {
   }
 
   pinMode(BUTTON, INPUT);
+  
+  pinMode(LED.R, OUTPUT);
+  pinMode(LED.G, OUTPUT);
+  pinMode(LED.B, OUTPUT);
 
+  digitalWrite(LED.R, LOW);
+  digitalWrite(LED.G, HIGH);
+  digitalWrite(LED.B, HIGH);
   while (digitalRead(BUTTON) == LOW);
 
   mpu.calcGyroOffsets();
@@ -157,6 +179,9 @@ void setup() {
   delay(30);
   motors_stop();
 
+  digitalWrite(LED.R, HIGH);
+  digitalWrite(LED.G, HIGH);
+  digitalWrite(LED.B, LOW);
   while (digitalRead(BUTTON) == HIGH);
   while (digitalRead(BUTTON) == LOW);
 
@@ -167,6 +192,9 @@ void setup() {
     delay(30);
     motors_stop();
 
+    digitalWrite(LED.R, HIGH);
+    digitalWrite(LED.G, LOW);
+    digitalWrite(LED.B, HIGH);
     while (digitalRead(BUTTON) == HIGH);
     while (digitalRead(BUTTON) == LOW);
 
@@ -176,21 +204,43 @@ void setup() {
     delay(30);
     motors_stop();
 
+    digitalWrite(LED.R, LOW);
+    digitalWrite(LED.G, HIGH);
+    digitalWrite(LED.B, LOW);
     while (digitalRead(BUTTON) == HIGH);
     while (digitalRead(BUTTON) == LOW);
+
   }
+  digitalWrite(LED.R, LOW);
+  digitalWrite(LED.G, LOW);
+  digitalWrite(LED.B, HIGH);
+
+  pingTimer = millis();
+  PIDTimer = millis();
 }
 
 void loop() {
-  for (int i = 0; i < 2; i++) {
+  /* mpu.update(); */
+
+  for (int i = 1; i >= 0; i--) {
     get_rgb(i);
   }
+
+  /* if (abs(mpu.getAngleZ() - rot) > 60) { */
+  /*   go_back(BASE_SPEED); */
+  /*   delay(400); */
+  /*   rot = mpu.getAngleZ(); */
+  /* } */
 
   if (DO_GREEN) {
     turn_green();
   }
 
-  usDistance = sonar.ping_cm();
+  if (DO_OBSTACLE && millis() - pingTimer >= 50) {
+    usDistance = sonar.ping_cm();
+    pingTimer = millis();
+  }
+
   if (DO_OBSTACLE && usDistance > 0 && usDistance < OBSTACLE_DISTANCE) {
     motors_stop();
     delay(100);
@@ -202,11 +252,20 @@ void loop() {
   }
 
   if (digitalRead(BUTTON) == HIGH) {
+    digitalWrite(LED.R, LOW);
+    digitalWrite(LED.G, HIGH);
+    digitalWrite(LED.B, HIGH);
     motors_stop();
     while (digitalRead(BUTTON) == HIGH);
     while (digitalRead(BUTTON) == LOW);
     while (digitalRead(BUTTON) == HIGH);
+    digitalWrite(LED.R, LOW);
+    digitalWrite(LED.G, LOW);
+    digitalWrite(LED.B, HIGH);
   }
 
-  pid_turn(BASE_SPEED, false);
+  if (millis() - PIDTimer >= 5) {
+    pid_turn(BASE_SPEED, false);
+    PIDTimer = millis();
+  }
 }
