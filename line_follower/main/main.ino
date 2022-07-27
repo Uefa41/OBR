@@ -86,7 +86,7 @@ const float GYRO_180 = 180;
 /* const long TIME_90 = 500; */
 /* const long TIME_180 = 1000; */
 
-const bool DO_GREEN = false;
+const bool DO_GREEN = true;
 const int MARGIN_OF_ERROR_GREEN = 15;
 const int MARGIN_OF_ERROR_BLACK = 8;
 
