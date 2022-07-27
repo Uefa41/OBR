@@ -119,7 +119,6 @@ unsigned long time, lastTime;
 float rot;
 
 unsigned int usDistance;
-unsigned long pingTimer;
 float lastUltrasonic;
 float ultrasonicValue;
 
@@ -223,8 +222,6 @@ void setup() {
   /* green_range[1].green = 83; */
   /* green_range[1].blue = 96; */
   /* green_range[1].ref = 31; */
-
-  pingTimer = millis();
 }
 
 void loop() {
@@ -251,19 +248,14 @@ void loop() {
     turn_green();
   }
 
-  usDistance = 0;
-  if (DO_OBSTACLE && millis() - pingTimer >= 50) {
-    usDistance = sonar.ping_cm();
-    pingTimer = millis();
-  }
-  if (usDistance > 0 && usDistance < OBSTACLE_DISTANCE && DO_OBSTACLE) {
+  usDistance = sonar.ping_cm();
+  if (DO_OBSTACLE && usDistance > 0 && usDistance < OBSTACLE_DISTANCE) {
     motors_stop();
     delay(100);
     usDistance = sonar.ping_cm();
 
     if (usDistance > 0 && usDistance < OBSTACLE_DISTANCE) {
       divert_obstacle(false);
-      usDistance = 0;
     }
   }
 
