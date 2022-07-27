@@ -22,7 +22,7 @@ void turn_green() {
     }
 
     go_back(BASE_SPEED);
-    delay(100);
+    delay(300);
     motors_stop();
   }
 }

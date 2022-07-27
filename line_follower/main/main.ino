@@ -1,4 +1,5 @@
 /* #include <Wire.h> */
+#include <NewPing.h>
 
 /// Structs
 typedef struct rgb_sensor {
@@ -94,12 +95,14 @@ const int MARGIN_OF_ERROR_GREEN = 15;
 const int MARGIN_OF_ERROR_BLACK = 8;
 
 const bool DO_OBSTACLE = true;
-const float OBSTACLE_DISTANCE = 3.0;
+const float OBSTACLE_DISTANCE = 10.0;
 
 const long GRAV = 14000;
 
 /// Variables
 /* gyro_values gyro; */
+
+NewPing sonar(US.trig, US.echo, 100);
 
 rgb_values rgb_sensor_values[2];
 
@@ -114,6 +117,11 @@ int PID;
 unsigned long time, lastTime;
 
 float rot;
+
+unsigned int usDistance;
+unsigned long pingTimer;
+float lastUltrasonic;
+float ultrasonicValue;
 
 /// Setup
 void setup() {
@@ -215,6 +223,8 @@ void setup() {
   /* green_range[1].green = 83; */
   /* green_range[1].blue = 96; */
   /* green_range[1].ref = 31; */
+
+  pingTimer = millis();
 }
 
 void loop() {
@@ -241,12 +251,19 @@ void loop() {
     turn_green();
   }
 
-  if (us_distance() < OBSTACLE_DISTANCE) {
+  usDistance = 0;
+  if (DO_OBSTACLE && millis() - pingTimer >= 50) {
+    usDistance = sonar.ping_cm();
+    pingTimer = millis();
+  }
+  if (usDistance > 0 && usDistance < OBSTACLE_DISTANCE && DO_OBSTACLE) {
     motors_stop();
     delay(100);
+    usDistance = sonar.ping_cm();
 
-    if (us_distance() < OBSTACLE_DISTANCE && DO_OBSTACLE) {
+    if (usDistance > 0 && usDistance < OBSTACLE_DISTANCE) {
       divert_obstacle(false);
+      usDistance = 0;
     }
   }
 

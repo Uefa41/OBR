@@ -1,21 +1,17 @@
-// Output in centimeters
-float us_distance() {
-  digitalWrite(US.trig, LOW);
-  delayMicroseconds(2);
-  digitalWrite(US.trig, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(US.trig, LOW);
-
-  unsigned long us_duration = pulseIn(US.echo, HIGH);
-
-  return 340 * ((float) (us_duration) / 20000);
-}
-
 // True for right, false for left;
 void divert_obstacle(bool side) {
   int rotate_speed = MAX_SPEED;
   if (side) {
     rotate_speed = -rotate_speed;
+  }
+
+  align_obstacle();
+
+  usDistance = sonar.ping_cm();
+  while (usDistance < OBSTACLE_DISTANCE) {
+    go_back(MIN_SPEED);
+    usDistance = sonar.ping_cm();
+    delay(50);
   }
 
   /* motors_rotate(GYRO_90, -rotate_speed); */
@@ -24,7 +20,7 @@ void divert_obstacle(bool side) {
   delay(400);
 
   /* motors_rotate(GYRO_90, rotate_speed); */
-  motors_rotate_time(TIME_90 + 50, rotate_speed);
+  motors_rotate_time(TIME_90, rotate_speed);
   motors_turn(0, MAX_SPEED, false);
   delay(800);
 
@@ -32,19 +28,58 @@ void divert_obstacle(bool side) {
   motors_rotate_time(TIME_90, rotate_speed);
   motors_turn(0, BASE_SPEED, false);
   
-  lastTime = time;
-  time = millis();
-  while ((! rgb_in_range(black_range, 0)) && (! rgb_in_range(black_range, 1)) && (millis() - time) < 600) {
+  while ((! rgb_in_range(black_range, 0)) && (! rgb_in_range(black_range, 1))) {
     get_rgb(0);
     get_rgb(1);
   }
-  
-  if (millis() - time > 600) {
-    motors_stop();
-    delay(1000);
-  }
-
   delay(100);
+
   /* motors_rotate(GYRO_90, -rotate_speed); */
   motors_rotate_time(TIME_90, -rotate_speed);
+
+  go_back(BASE_SPEED);
+  delay(100);
+}
+
+void align_obstacle() {
+  motors_stop();
+  ultrasonicValue = sonar.ping_median(10);
+  motors_spin(MAX_SPEED);
+  delay(50);
+  lastUltrasonic = ultrasonicValue;
+  ultrasonicValue = sonar.ping_median();
+
+  if (ultrasonicValue == lastUltrasonic) {
+    return;
+  }
+
+  if (ultrasonicValue - lastUltrasonic < 0 ) {
+    while(ultrasonicValue - lastUltrasonic < 0) {
+      motors_spin(MAX_SPEED);
+      delay(50);
+      motors_stop();
+      lastUltrasonic = ultrasonicValue;
+      ultrasonicValue = sonar.ping_median();
+    }
+
+    return;
+  }
+
+  if (ultrasonicValue - lastUltrasonic > 0) {
+    motors_spin(-MAX_SPEED);
+    delay(50);
+    lastUltrasonic = ultrasonicValue;
+    ultrasonicValue = sonar.ping_median();
+
+    while(ultrasonicValue - lastUltrasonic < 0) {
+      motors_spin(-MAX_SPEED);
+      delay(50);
+      motors_stop();
+      lastUltrasonic = ultrasonicValue;
+      ultrasonicValue = sonar.ping_median();
+    }
+
+    motors_stop();
+    return;
+  }
 }
