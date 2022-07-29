@@ -2,27 +2,31 @@ void turn_green() {
   int green_id = check_green(); 
   if (green_id && check_black(green_id - 1)) {
     motors_turn(0, BASE_SPEED, false);
-    delay(200);
+    delay(150);
 
     switch (green_id) {
       case 1:
         /* motors_rotate(GYRO_90, -MAX_SPEED); */
         motors_rotate_time(TIME_90, -MAX_SPEED);
+        go_back(BASE_SPEED);
+        delay(300);
         break;
 
       case 2:
         /* motors_rotate(GYRO_90, MAX_SPEED); */
         motors_rotate_time(TIME_90, MAX_SPEED);
+        go_back(BASE_SPEED);
+        delay(300);
         break;
 
       case 3:
         /* motors_rotate(GYRO_180, MAX_SPEED); */
         motors_rotate_time(TIME_180, MAX_SPEED);
+        go_back(BASE_SPEED);
+        delay(200);
         break;
     }
 
-    go_back(BASE_SPEED);
-    delay(300);
     motors_stop();
   }
 }
@@ -39,7 +43,7 @@ int check_green() {
 
     motors_turn(0, BASE_SPEED, false);
 
-    while (millis() - time < 50) {
+    while (millis() - time < 80) {
       get_rgb(1);
       
       if (rgb_in_range(green_range, 1)) {
@@ -75,7 +79,6 @@ bool check_black(int sensor_id) {
   time = millis();
 
   motors_turn(0, BASE_SPEED, false);
-  delay(10);
 
   while (millis() - time < 200) {
     if (sensor_id == 2) {

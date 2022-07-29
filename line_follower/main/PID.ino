@@ -3,7 +3,7 @@ void pid_turn(int base_speed, bool backwards) {
     get_rgb(i);
   }
 
-  error = pow(rgb_sensor_values[0].ref, 2) - pow(rgb_sensor_values[1].ref, 2);
+  error = pow(rgb_sensor_values[1].ref, 2) - pow(rgb_sensor_values[0].ref, 2);
 
   /* error *= K; */
 

@@ -2,8 +2,8 @@ void motors_turn(int direction, int base_speed, bool backwards) {
   if (backwards) {
     direction = - direction;
   }
-  motor_speed[0] = base_speed + direction;
-  motor_speed[1] = base_speed - direction;
+  motor_speed[0] = base_speed - direction;
+  motor_speed[1] = base_speed + direction;
 
   for (int i = 0; i < 2; i++) {
     motor_speed[i] = min(MAX_SPEED, motor_speed[i]);

@@ -18,10 +18,10 @@ void calibrate(rgb_values range[], int margin) {
     delay(1);
   }
 
-  range[0].red -= margin;
-  range[0].green -= margin;
-  range[0].blue -= margin;
-  range[0].ref -= margin;
+  range[0].red = max(0, range[0].red - margin);
+  range[0].green = max(0, range[0].green - margin);
+  range[0].blue = max(0, range[0].blue - margin);
+  range[0].ref = max(0, range[0].ref - margin);
   
   range[1].red += margin;
   range[1].green += margin;
