@@ -62,17 +62,6 @@ void motors_stop() {
   digitalWrite(MOTORS[1].B, LOW);
 }
 
-void motors_rotate(float rotation, int speed) {
-  mpu.update();
-  rot = mpu.getAngleZ();
-  
-  motors_spin(speed);
-  
-  while (abs(mpu.getAngleZ() - rot) < rotation) {
-    mpu.update();
-  }
-}
-
 void motors_rotate_time(long rotation, int speed) {
   motors_spin(speed);
   delay(rotation);

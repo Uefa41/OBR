@@ -1,0 +1,2 @@
+CompileFlags:
+  Add: [-I/usr/avr/sys-root/include, -I/usr/lib64/arduino/hardware/suse-arduino/avr/cores/arduino, -I/usr/lib64/arduino/hardware/suse-arduino/avr/variants/mega]

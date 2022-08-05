@@ -22,7 +22,7 @@ void divert_obstacle(bool side) {
   /* motors_rotate(GYRO_90, rotate_speed); */
   motors_rotate_time(TIME_90, rotate_speed);
   motors_turn(0, MAX_SPEED, false);
-  delay(1100);
+  delay(950);
 
   /* motors_rotate(GYRO_90, rotate_speed); */
   motors_rotate_time(TIME_90, rotate_speed);
@@ -45,7 +45,7 @@ void divert_obstacle(bool side) {
   motors_rotate_time(TIME_90, -rotate_speed);
 
   go_back(MAX_SPEED);
-  delay(400);
+  delay(300);
 }
 
 void align_obstacle() {

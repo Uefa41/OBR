@@ -21,9 +21,23 @@ void turn_green() {
 
       case 3:
         /* motors_rotate(GYRO_180, MAX_SPEED); */
-        motors_rotate_time(TIME_180, MAX_SPEED);
+        motors_rotate_time(TIME_90, MAX_SPEED);
+        motors_spin(MAX_SPEED);
+        
+        lastTime = time;
+        time = millis();
+        while(millis() - time < TIME_180) {
+          get_rgb(0);
+          get_rgb(1);
+
+          if (rgb_in_range(black_range_obs, 0) || rgb_in_range(black_range_obs, 1)) {
+            break;
+          }
+        }
         go_back(BASE_SPEED);
+        digitalWrite(NOISE, HIGH);
         delay(200);
+        digitalWrite(NOISE, LOW);
         break;
     }
 
@@ -58,7 +72,7 @@ int check_green() {
 
     motors_turn(0, BASE_SPEED, false);
 
-    while ( millis() - time < 50) {
+    while ( millis() - time < 80) {
       get_rgb(0);
 
       if(rgb_in_range(green_range, 0)) {
