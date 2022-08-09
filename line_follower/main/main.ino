@@ -6,6 +6,7 @@
 #include "pins.h"
 #include "rgb.h"
 #include "traction.h"
+#include <NewPing.h>
 
 /// Constants
 const int GREEN_MARGIN = 7;
@@ -42,8 +43,15 @@ Gyro gyro(GYRO, ROT_90);
 // Button
 Button button(BUTTON);
 
+// Ultrasonic
+NewPing sonar[] = {
+  NewPing(US_F_TRIG, US_F_ECHO, 100),
+  NewPing(US_L_TRIG, US_L_ECHO, 100),
+  NewPing(US_R_TRIG, US_R_ECHO, 100),
+};
+
 // Control
-Control control(traction, rgbLeft, rgbRight, colorPid, gyro, button);
+Control control(traction, rgbLeft, rgbRight, colorPid, gyro, button, sonar);
 
 void setup() {
   Serial.begin(9600);
